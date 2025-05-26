@@ -32,6 +32,29 @@ A comprehensive web-based bus management system that allows users to track buses
 - **API Communication**: Fetch API for backend communication
 - **Storage**: In-memory storage for session data
 
+## 📸 Screenshots
+
+### Welcome Page
+![Welcome Page](screenshots/welcome.png)
+
+### Login Page
+![Login Page](screenshots/login.png)
+
+### Registration Page
+![Registration Page](screenshots/register.png)
+
+### Dashboard/Homepage
+![Dashboard](screenshots/homepage.png)
+
+### User Profile
+![User Profile](screenshots/profile.png)
+
+### Digital Bus Pass - Login Form
+![Bus Pass Login](screenshots/buspass-login.png)
+
+### Digital Bus Pass - Pass Display
+![Bus Pass Display](screenshots/buspass-display.png)
+
 ## Project Structure
 
 ```
@@ -46,6 +69,14 @@ bus-tracker/
 │   └── bus1.jpg             # Bus image asset
 ├── Backend/
 │   └── busSystem.py         # Flask application
+├── screenshots/              # Screenshots for documentation
+│   ├── welcome.png          # Welcome page screenshot
+│   ├── login.png            # Login page screenshot
+│   ├── register.png         # Registration page screenshot
+│   ├── homepage.png         # Homepage/dashboard screenshot
+│   ├── profile.png          # User profile screenshot
+│   ├── buspass-login.png    # Bus pass login form screenshot
+│   └── buspass-display.png  # Bus pass display screenshot
 └── README.md
 ```
 

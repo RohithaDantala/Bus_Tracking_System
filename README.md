@@ -46,6 +46,9 @@ A comprehensive web-based bus management system that allows users to track buses
 ### Dashboard/Homepage
 ![Dashboard](screenshots/homepage.png)
 
+### Dashboard/Homepage
+![Dashboard](screenshots/homepage-continued.png)
+
 ### User Profile
 ![User Profile](screenshots/profile.png)
 

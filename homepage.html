@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Homepage - Bus Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f0f0f0; }
+        .nav { background: #333; padding: 0; overflow: hidden; text-align: center; }
+        .nav a { display: inline-block; color: white; text-align: center; padding: 14px 20px; text-decoration: none; }
+        .nav a:hover { background: #007BFF; }
+        .nav a.active { background: #007BFF; }
+        .container { margin: 20px; }
+        h1 { background: #007BFF; color: white; padding: 20px; text-align: center; border-radius: 10px; margin-top: 0; }
+        .section { background: white; padding: 20px; margin: 20px 0; border-radius: 10px; }
+        .bus-card { background: #f9f9f9; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 5px solid #007BFF; }
+        .bus-name { font-size: 18px; font-weight: bold; color: #333; }
+        .bus-info { margin: 5px 0; color: #666; }
+        .id { background: #007BFF; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin-right: 10px; }
+        .loading { text-align: center; color: #999; padding: 20px; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="#" class="active">Home</a>
+        <a href="profile.html">Profile</a>
+        <a href="buspass.html">Bus Pass</a>
+    </nav>
+    <div class="container">
+        <h1>🚌 Bus Tracker</h1>
+        <div class="section"><h2>Buses Right Now</h2><div id="buses-now"><div class="loading">Loading...</div></div></div>
+        <div class="section"><h2>Routes</h2><div id="routes"><div class="loading">Loading...</div></div></div>
+        <div class="section"><h2>Drivers</h2><div id="drivers"><div class="loading">Loading...</div></div></div>
+        <div class="section"><h2>All Buses</h2><div id="buses"><div class="loading">Loading...</div></div></div>
+    </div>
+
+    <script>
+        function loadData(url, containerId, renderFn) {
+            fetch(url).then(r => r.json()).then(data => {
+                document.getElementById(containerId).innerHTML = data.map(renderFn).join('');
+            }).catch(() => {
+                document.getElementById(containerId).innerHTML = '<div class="loading">Error loading data</div>';
+            });
+        }
+
+        function card(id, title, info) {
+            return `<div class="bus-card"><div class="bus-name"><span class="id">${id}</span>${title}</div>${info}</div>`;
+        }
+
+        function busNowRender(d) {
+            return card(`Bus ${d.bus_id}`, 'Moving Now', 
+                `<div class="bus-info">Location: ${d.current_location}</div><div class="bus-info">Route: ${d.route_id}</div><div class="bus-info">Driver: ${d.driver_id || 'N/A'}</div>`);
+        }
+
+        function routeRender(d, i) {
+            return card(`Route ${d.route_id || (i+1)}`, `${d.source} to ${d.destination}`, 
+                `<div class="bus-info">Time: ${d.start_time} - ${d.end_time}</div>`);
+        }
+
+        function driverRender(d, i) {
+            return card(`Driver ${d.driver_id || (i+1)}`, d.driver_name, 
+                `<div class="bus-info">Phone: ${d.driver_phno}</div>`);
+        }
+
+        function busRender(d) {
+            return card(`Bus ${d.bus_id || d.bus_num}`, `Bus ${d.bus_num}`, 
+                `<div class="bus-info">Type: ${d.bus_type}</div><div class="bus-info">Location: ${d.current_location}</div><div class="bus-info">Driver: ${d.driver_id || 'N/A'}</div>`);
+        }
+
+        loadData('http://localhost:5000/getBusTracking', 'buses-now', busNowRender);
+        loadData('http://localhost:5000/getRouteDetails', 'routes', routeRender);
+        loadData('http://localhost:5000/getDriverDetails', 'drivers', driverRender);
+        loadData('http://localhost:5000/getBusDetails', 'buses', busRender);
+    </script>
+</body>
+</html>

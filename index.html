@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <title>Products</title>
+    </head>
+    <body>
+        <a href="addproduct.html"> Add Products</a>
+        <table id="tabledata">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th> Product Name</th>
+                    <th> Product Description</th>
+                    <th> Product Category</th>
+                    <th> Product Price</th>
+                    <th> Product Brand</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <!--http://localhost:5000/viewAllProduct-->
+        <script>
+            fetch('http://localhost:5000/viewAllProduct').then(response=>response.json()).then(data => {
+            console.log(data);
+            const tablebody=document.querySelector('#tabledata tbody')
+            data.forEach(pro => {
+                const row=`<tr><td>${pro.proid}</td>
+                               <td>${pro.proname}</td>
+                               <td>${pro.prodesc}</td>
+                               <td>${pro.procategory}</td>
+                               <td>${pro.proprice}</td>
+                               <td>${pro.probrand}</td>
+                          </tr>`;
+                tablebody.innerHTML+=row;
+            });
+            })
+
+        </script>
+    </body>
+</html>

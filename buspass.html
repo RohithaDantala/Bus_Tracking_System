@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bus Pass - Bus Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: linear-gradient(135deg, #87CEEB, #FFB6C1); min-height: 100vh; }
+        .nav { background: #333; padding: 0; overflow: hidden; text-align: center; }
+        .nav a { display: inline-block; color: white; text-align: center; padding: 14px 20px; text-decoration: none; }
+        .nav a:hover { background: #007BFF; }
+        .nav a.active { background: #007BFF; }
+        .container { margin: 20px; max-width: 600px; margin-left: auto; margin-right: auto; padding-top: 50px; }
+        .page-title { text-align: center; font-size: 32px; font-weight: bold; color: #333; margin-bottom: 40px; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); }
+        .bus-pass-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 400px; margin: 0 auto; }
+        .card-title { text-align: center; font-size: 24px; font-weight: bold; color: #333; margin-bottom: 30px; text-decoration: underline; }
+        .pass-detail { margin-bottom: 15px; display: flex; }
+        .detail-label { font-weight: bold; color: #333; min-width: 150px; }
+        .detail-value { color: #666; }
+        .signature-section { margin-top: 25px; }
+        .signature-label { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .signature-placeholder { background: #f5f5f5; border: 2px dashed #ccc; height: 60px; display: flex; align-items: center; justify-content: center; color: #999; margin-bottom: 15px; border-radius: 5px; }
+        .loading { text-align: center; color: #333; padding: 20px; font-size: 18px; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin: 20px; text-align: center; }
+        .auto-login-section { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+        .auto-login-button { background: #17a2b8; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 0 5px; }
+        .auto-login-button:hover { background: #138496; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="homepage.html">Home</a>
+        <a href="profile.html">Profile</a>
+        <a href="#" class="active">Bus Pass</a>
+    </nav>
+    
+    <div class="container">
+        <div class="page-title">E-Bus Pass</div>
+        
+        <div id="login-section">
+            <div class="bus-pass-card">
+                <div class="card-title">Access Bus Pass</div>
+                
+                <!-- Auto-login section for logged in users -->
+                <div id="auto-login-section" style="display: none;" class="auto-login-section">
+                    <p>You are logged in! Click below to view your bus pass:</p>
+                    <button onclick="autoLoginFromProfile()" class="auto-login-button">View My Bus Pass</button>
+                </div>
+                
+                <div id="manual-login-section">
+                    <div id="login-message"></div>
+                    <div class="pass-detail">
+                        <label for="pass-id-input" class="detail-label">Enter Pass ID:</label>
+                        <input type="text" id="pass-id-input" placeholder="e.g., 1, 2, 3..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="loginWithPassId()" style="background: #007BFF; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">View Pass</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="bus-pass-info" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        // Load page - check if user is logged in
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserLogin();
+        });
+        
+        function checkUserLogin() {
+            // Check if user is logged in from profile/login page
+            const userData = getStoredData('user');
+            const accessToken = getStoredData('access_token');
+            
+            if (userData && accessToken) {
+                // User is logged in, show auto-login option
+                document.getElementById('auto-login-section').style.display = 'block';
+            }
+            
+            // Also check if they previously accessed a pass directly
+            const currentPassId = getStoredData('currentPassId');
+            if (currentPassId) {
+                loginWithPassId(currentPassId);
+            }
+        }
+        
+        function autoLoginFromProfile() {
+            try {
+                const userData = JSON.parse(getStoredData('user'));
+                if (userData && userData.user_id) {
+                    // Find bus pass by user_id using the correct endpoint
+                    findBusPassByUserId(userData.user_id);
+                } else {
+                    showError('User data not found. Please login again.');
+                }
+            } catch (e) {
+                showError('Error reading user data. Please login again.');
+            }
+        }
+        
+        function findBusPassByUserId(userId) {
+            const messageDiv = document.getElementById('login-message');
+            messageDiv.innerHTML = '<div class="loading">Finding your bus pass...</div>';
+            
+            console.log('Searching for bus passes for user_id:', userId);
+            console.log('API URL:', `http://localhost:5000/getBusPassesByUser/${userId}`);
+            
+            // Using the correct endpoint from your Flask routes
+            fetch(`http://localhost:5000/getBusPassesByUser/${userId}`)
+                .then(response => {
+                    console.log('Bus passes API response status:', response.status);
+                    console.log('Bus passes API response ok:', response.ok);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Bus passes response:', data);
+                    console.log('Data type:', typeof data);
+                    console.log('Is array:', Array.isArray(data));
+                    
+                    if (data.error) {
+                        showError(`API Error: ${data.error}`);
+                        return;
+                    }
+                    
+                    // Check if we got an array of bus passes
+                    if (Array.isArray(data) && data.length > 0) {
+                        const busPassData = data[0]; // Get the first bus pass
+                        console.log('Selected bus pass:', busPassData);
+                        
+                        // Store the pass info
+                        storeData('currentPassId', busPassData.pass_id.toString());
+                        storeData('currentUserId', userId.toString());
+                        
+                        // Get user info to display
+                        const userData = JSON.parse(getStoredData('user'));
+                        displayBusPassFromLogin(userData, busPassData);
+                    } else if (Array.isArray(data) && data.length === 0) {
+                        showError('No bus passes found for your account.');
+                    } else {
+                        showError('Unexpected response format from server.');
+                        console.log('Unexpected data format:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Detailed error in findBusPassByUserId:', error);
+                    console.error('Error name:', error.name);
+                    console.error('Error message:', error.message);
+                    
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        showError('Cannot connect to server. Make sure Flask server is running on localhost:5000');
+                    } else if (error.message.includes('HTTP error')) {
+                        showError(`Server error: ${error.message}. Check Flask server logs for details.`);
+                    } else {
+                        showError(`Error: ${error.message}`);
+                    }
+                });
+        }
+        
+        function loginWithPassId(passId = null) {
+            const inputPassId = passId || document.getElementById('pass-id-input').value.trim();
+            const messageDiv = document.getElementById('login-message');
+            
+            if (!inputPassId) {
+                showError('Please enter a Pass ID');
+                return;
+            }
+            
+            // Use the pass ID directly as a number
+            const numericPassId = parseInt(inputPassId);
+            if (isNaN(numericPassId) || numericPassId <= 0) {
+                showError('Please enter a valid Pass ID (e.g., 1, 2, 3...)');
+                return;
+            }
+            
+            messageDiv.innerHTML = '<div class="loading">Loading bus pass...</div>';
+            
+            console.log('Attempting to fetch bus pass with ID:', numericPassId);
+            console.log('API URL:', `http://localhost:5000/getBusPass/${numericPassId}`);
+            
+            // Get bus pass info using the correct endpoint
+            fetch(`http://localhost:5000/getBusPass/${numericPassId}`)
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    console.log('Response ok:', response.ok);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Bus pass response:', data);
+                    
+                    if (data.error) {
+                        showError(`API Error: ${data.error}`);
+                        return;
+                    }
+                    
+                    if (data.bus_pass) {
+                        const busPassData = data.bus_pass;
+                        console.log('Bus pass data:', busPassData);
+                        
+                        // Check if bus pass has user name directly, or try to get user info
+                        if (busPassData.user_name || busPassData.username) {
+                            // Bus pass already has user info
+                            const userData = {
+                                user_name: busPassData.user_name || busPassData.username,
+                                user_id: busPassData.user_id
+                            };
+                            
+                            storeData('currentPassId', numericPassId.toString());
+                            storeData('currentUserId', busPassData.user_id.toString());
+                            
+                            displayBusPassFromManual(userData, busPassData);
+                        } else if (busPassData.user_id) {
+                            // Try to get user info from API
+                            console.log('Fetching user data for user_id:', busPassData.user_id);
+                            fetch(`http://localhost:5000/getUser/${busPassData.user_id}`)
+                                .then(response => {
+                                    console.log('User API response status:', response.status);
+                                    if (!response.ok) {
+                                        // If user API fails, display with generic user info
+                                        console.warn('User API failed, using generic user info');
+                                        const genericUser = {
+                                            user_name: `User ${busPassData.user_id}`,
+                                            user_id: busPassData.user_id
+                                        };
+                                        
+                                        storeData('currentPassId', numericPassId.toString());
+                                        storeData('currentUserId', busPassData.user_id.toString());
+                                        
+                                        displayBusPassFromManual(genericUser, busPassData);
+                                        return;
+                                    }
+                                    return response.json();
+                                })
+                                .then(userData => {
+                                    if (!userData) return; // Already handled above
+                                    
+                                    console.log('User data response:', userData);
+                                    
+                                    if (userData.user) {
+                                        storeData('currentPassId', numericPassId.toString());
+                                        storeData('currentUserId', busPassData.user_id.toString());
+                                        
+                                        displayBusPassFromManual(userData.user, busPassData);
+                                    } else {
+                                        // Fallback to generic user info
+                                        const genericUser = {
+                                            user_name: `User ${busPassData.user_id}`,
+                                            user_id: busPassData.user_id
+                                        };
+                                        
+                                        storeData('currentPassId', numericPassId.toString());
+                                        storeData('currentUserId', busPassData.user_id.toString());
+                                        
+                                        displayBusPassFromManual(genericUser, busPassData);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('User API error, using fallback:', error);
+                                    // Use fallback user info
+                                    const genericUser = {
+                                        user_name: `User ${busPassData.user_id}`,
+                                        user_id: busPassData.user_id
+                                    };
+                                    
+                                    storeData('currentPassId', numericPassId.toString());
+                                    storeData('currentUserId', busPassData.user_id.toString());
+                                    
+                                    displayBusPassFromManual(genericUser, busPassData);
+                                });
+                        } else {
+                            // No user_id at all
+                            const genericUser = {
+                                user_name: 'Unknown User',
+                                user_id: 'N/A'
+                            };
+                            
+                            storeData('currentPassId', numericPassId.toString());
+                            
+                            displayBusPassFromManual(genericUser, busPassData);
+                        }
+                    } else if (data.bus_pass) {
+                        showError('Bus pass found but no user_id associated');
+                        console.log('Bus pass without user_id:', data.bus_pass);
+                    } else {
+                        showError('Bus pass not found. Please check the Pass ID.');
+                        console.log('No bus_pass in response:', data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Detailed error:', error);
+                    console.error('Error name:', error.name);
+                    console.error('Error message:', error.message);
+                    
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        showError('Cannot connect to server. Make sure Flask server is running on localhost:5000');
+                    } else if (error.message.includes('HTTP error')) {
+                        showError(`Server error: ${error.message}. Check Flask server logs for details.`);
+                    } else {
+                        showError(`Error: ${error.message}`);
+                    }
+                });
+        }
+        
+        function displayBusPassFromLogin(user, busPass) {
+            // Hide login section and show bus pass
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('bus-pass-info').style.display = 'block';
+            displayBusPass(user, busPass);
+        }
+        
+        function displayBusPassFromManual(user, busPass) {
+            // Hide login section and show bus pass
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('bus-pass-info').style.display = 'block';
+            displayBusPass(user, busPass);
+        }
+        
+        function displayBusPass(user, busPass) {
+            const userName = user.user_name || user.username || 'Unknown User';
+            
+            // Format dates safely
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                try {
+                    return new Date(dateString).toLocaleDateString();
+                } catch (e) {
+                    return dateString; // Return as-is if formatting fails
+                }
+            };
+            
+            const passHtml = `
+                <div class="bus-pass-card">
+                    <div class="card-title">E-Bus Pass</div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Pass ID:</span>
+                        <span class="detail-value">${busPass.pass_id || 'N/A'}</span>
+                    </div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Name:</span>
+                        <span class="detail-value">${userName}</span>
+                    </div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Pass Type:</span>
+                        <span class="detail-value">${busPass.pass_type || 'N/A'}</span>
+                    </div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value">${busPass.status || 'N/A'}</span>
+                    </div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Issue Date:</span>
+                        <span class="detail-value">${formatDate(busPass.issue_date)}</span>
+                    </div>
+                    
+                    <div class="pass-detail">
+                        <span class="detail-label">Expiry Date:</span>
+                        <span class="detail-value">${formatDate(busPass.expiry_date)}</span>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button onclick="goBack()" style="background: #6c757d; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Back to Login</button>
+                </div>
+            `;
+            document.getElementById('bus-pass-info').innerHTML = passHtml;
+        }
+        
+        function goBack() {
+            removeStoredData('currentPassId');
+            removeStoredData('currentUserId');
+            document.getElementById('login-section').style.display = 'block';
+            document.getElementById('bus-pass-info').style.display = 'none';
+            document.getElementById('pass-id-input').value = '';
+            document.getElementById('login-message').innerHTML = '';
+            
+            // Re-check user login status
+            checkUserLogin();
+        }
+        
+        function showError(message) {
+            document.getElementById('login-message').innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        // Storage helper functions (using memory instead of localStorage for artifacts)
+        const memoryStorage = {};
+        
+        function storeData(key, value) {
+            memoryStorage[key] = value;
+        }
+        
+        function getStoredData(key) {
+            return memoryStorage[key] || null;
+        }
+        
+        function removeStoredData(key) {
+            delete memoryStorage[key];
+        }
+    </script>
+</body>
+</html>

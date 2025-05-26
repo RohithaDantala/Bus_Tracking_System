@@ -62,9 +62,9 @@ A comprehensive web-based bus management system that allows users to track buses
 
 ```
 bus_tracker_system/
-│   ├── Welcome.html          # Landing page
+│   ├── welcome.html          # Landing page
 │   ├── login.html           # User login
-│   ├── Register.html        # User registration
+│   ├── register.html        # User registration
 │   ├── homepage.html        # Main dashboard
 │   ├── profile.html         # User profile
 │   ├── buspass.html         # Digital bus pass

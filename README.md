@@ -181,3 +181,27 @@ bus_tracker_system/
 - **JWT Authentication**: Token-based authentication for secure API access
 - **Input Validation**: Frontend and backend validation for all user inputs
 - **CORS Protection**: Configured for secure cross-origin requests
+
+  ### 🔧  Further Research / Future Scope
+  
+- 🔄 Integrate GPS hardware for live automatic bus location updates instead of manual coordinates
+
+- 📱 Develop mobile apps using React Native or Flutter for student & admin access
+
+- 🔔 Push notifications for bus arrival alerts using Firebase or Twilio
+
+- 📊 Admin dashboard for visual analytics of routes, bus utilization, and driver performance
+
+- 🔐 Two-factor authentication (2FA) for enhanced login security
+
+- ☁️ Migrate backend to cloud (e.g., AWS, Heroku, or GCP) for better scalability
+
+- 🧾 Online payment gateway for digital bus pass purchase (Stripe, Razorpay etc.)
+
+- 🧮 Auto-assign buses & drivers based on load, timing, and driver availability using algorithms
+
+### ✅ Conclusion
+The Online Bus Tracking System provides a reliable and efficient solution to track buses in real time. It reduces the uncertainty of bus arrival times and improves communication between students, drivers, and administrators. By using a user-friendly web interface, the system enables users to view current bus locations, estimated arrival times, and route information.
+
+This project demonstrates how technology can improve daily transportation experiences and ensure better safety and time management for students. With further enhancements like GPS integration and mobile app support, this system can become a fully automated smart transportation solution.
+
